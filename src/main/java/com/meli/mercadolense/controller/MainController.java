@@ -2,13 +2,11 @@ package com.meli.mercadolense.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.meli.mercadolense.domain.Item;
+import com.meli.mercadolense.dto.ItemDTO;
 import com.meli.mercadolense.service.CarritoService;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +15,8 @@ import java.util.List;
 @RequestMapping("/api")
 public class MainController {
     @Autowired
-    CarritoService carritoService;
+    private CarritoService carritoService;
+    private final String USER_ID = "9852568";
 
     @GetMapping("/ping")
     public String ping() {
@@ -34,5 +33,25 @@ public class MainController {
     @PostMapping("/update")
     public void update() {
         carritoService.updateItems("9852568");
+    }
+
+    @PostMapping("/item")
+    public String postItem(@RequestBody ItemDTO item){
+        //Servicio Nico Albani
+        //Vuelven los posibles items
+        return "";
+    }
+
+    @PostMapping("/generateCart")
+    public String generateCart(@RequestBody List<String> ids){
+        List<Item> items = new ArrayList<>();
+
+        for (String id:ids) {
+           String[] aux = id.split("-");
+           items.add(new Item(aux[0]+aux[1]));
+        }
+
+        carritoService.addItems(USER_ID, items);
+        return "OKEY";
     }
 }

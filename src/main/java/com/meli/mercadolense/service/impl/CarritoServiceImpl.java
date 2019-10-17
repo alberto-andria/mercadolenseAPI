@@ -32,6 +32,7 @@ public class CarritoServiceImpl implements CarritoService {
             String body = mapper.writeValueAsString(items);
             request.setEntity(new StringEntity(body));
             CloseableHttpResponse response = httpClient.execute(request);
+            System.out.println(response.getStatusLine().getReasonPhrase());
             System.out.println(response.getStatusLine().getStatusCode());
         }catch (Exception e){
             System.out.println("Fallo para el carajo: "+e.getMessage());
