@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface CarritoService {
     void addItems(String userId, List<Item> items);
-    void updateItems();
+    void updateItems(String userId);
     List<Item> getItems(String userId);
     String getURL();
 }

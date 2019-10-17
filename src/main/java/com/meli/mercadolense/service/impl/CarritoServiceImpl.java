@@ -3,9 +3,11 @@ package com.meli.mercadolense.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.meli.mercadolense.domain.Item;
 import com.meli.mercadolense.service.CarritoService;
+import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -37,7 +39,29 @@ public class CarritoServiceImpl implements CarritoService {
     }
 
     @Override
-    public void updateItems() {
+    public void updateItems(String userId) {
+        List<Item> items = getItems(userId);
+        String payload = "{\"status\":\"saved_for_later\"}";
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+        for (int i = 0; i < items.size(); i++) {
+            String url = String.format("http://api.internal.ml.com/carts/items/%s?client.id=6636335586086312&user_id=%s&caller.id=%s", items.get(i).getId(), userId, userId);
+            HttpPut request = new HttpPut(url);
+            try {
+                request.setEntity(new StringEntity(payload));
+                CloseableHttpResponse response = httpClient.execute(request);
+                StatusLine sl = response.getStatusLine();
+                System.out.println(sl.getStatusCode());
+                switch (sl.getStatusCode()) {
+                    case 400:
+                        JSONObject strResponse = new JSONObject(EntityUtils.toString(response.getEntity()));
+                        System.out.println(strResponse.toString());
+                        break;
+                }
+            } catch (Exception e) {
+                System.out.println("Error al actualizar item " + items.get(i).getId() + ": " + e.getMessage());
+            }
+        }
 
     }
 
