@@ -1,10 +1,8 @@
 package com.meli.mercadolense.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.meli.mercadolense.domain.Item;
 import com.meli.mercadolense.dto.ItemDTO;
 import com.meli.mercadolense.service.CarritoService;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
