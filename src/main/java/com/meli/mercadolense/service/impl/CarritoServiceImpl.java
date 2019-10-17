@@ -1,9 +1,12 @@
 package com.meli.mercadolense.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.meli.mercadolense.domain.Item;
 import com.meli.mercadolense.service.CarritoService;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -20,7 +23,17 @@ public class CarritoServiceImpl implements CarritoService {
 
     @Override
     public void addItems(String userId, List<Item> items) {
-
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        HttpPost request = new HttpPost("http://api.internal.ml.com/carts/items/bulk?client.id=6636335586086312&caller.id="+userId+"&user_id="+userId);
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String body = mapper.writeValueAsString(items);
+            request.setEntity(new StringEntity(body));
+            CloseableHttpResponse response = httpClient.execute(request);
+            System.out.println(response.getStatusLine().getStatusCode());
+        }catch (Exception e){
+            System.out.println("Fallo para el carajo: "+e.getMessage());
+        }
     }
 
     @Override
