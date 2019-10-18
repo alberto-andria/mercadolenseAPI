@@ -37,10 +37,15 @@ public class ItemServiceImpl implements ItemService {
             item.setUrl((String)strResponse.get("permalink"));
             item.setCategory((String)strResponse.get("category_id"));
             item.setName((String)strResponse.get("title"));
-            item.setPrice((Integer)strResponse.get("price"));
             // setting item picture url
             JSONArray pictures = (JSONArray)strResponse.get("pictures");
             item.setImageUrl((String)pictures.getJSONObject(0).get("url"));
+            // processing price
+            try {
+                item.setPrice((Integer)strResponse.get("price"));
+            } catch (Exception e) {
+                item.setPrice(((Double)strResponse.get("price")).intValue());
+            }
         } catch (Exception e){
             System.out.println("Fallo para el carajo: "+e.getMessage());
         }

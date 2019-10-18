@@ -76,36 +76,39 @@ static {
             List<ProductSearchDTO> dto = new ArrayList<>();
 
             // getting first result
-            Prediction firstPrediction = results.predictions().get(0);
-            String tagName = firstPrediction.tagName().replaceFirst("-","");
-            String itemId = tagName.substring(0, tagName.indexOf("-"));
+            for (Prediction prediction : results.predictions()) {
+                if (prediction.probability() > 0.1){
+                    String tagName = prediction.tagName().replaceFirst("-","");
+                    String itemId = tagName.substring(0, tagName.indexOf("-"));
 
-            // getting first item data
-            Item item = itemService.getItem(itemId);
+                    // getting first item data
+                    Item item = itemService.getItem(itemId);
 
-            // adding first result
-            dto.add(new ProductSearchDTO(
-                    itemId,
-                    firstPrediction.probability(),
-                    item.getName(),
-                    item.getUrl(),
-                    item.getImageUrl(),
-                    item.getPrice()));
-
-            // getting suggestions
-            List<Item> items = itemService.getSuggestions(item.getId(), item.getCategory());
-
-            // adding suggestions
-            for(Item suggestion :items){
-                dto.add(new ProductSearchDTO(
-                        suggestion.getId(),
-                        firstPrediction.probability(),
-                        suggestion.getId(),
-                        suggestion.getUrl(),
-                        suggestion.getImageUrl(),
-                        suggestion.getPrice()
-                ));
+                    // adding first result
+                    dto.add(new ProductSearchDTO(
+                            itemId,
+                            prediction.probability(),
+                            item.getName(),
+                            item.getUrl(),
+                            item.getImageUrl(),
+                            item.getPrice()));
+                }
             }
+
+//            // getting suggestions
+//            List<Item> items = itemService.getSuggestions(item.getId(), item.getCategory());
+//
+//            // adding suggestions
+//            for(Item suggestion :items){
+//                dto.add(new ProductSearchDTO(
+//                        suggestion.getId(),
+//                        firstPrediction.probability(),
+//                        suggestion.getId(),
+//                        suggestion.getUrl(),
+//                        suggestion.getImageUrl(),
+//                        suggestion.getPrice()
+//                ));
+//            }
 
             ObjectMapper mapper = new ObjectMapper();
             return mapper.writeValueAsString(dto);

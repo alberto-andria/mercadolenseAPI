@@ -53,9 +53,15 @@ public class MainController {
     public String generateCart(@RequestBody List<String> ids){
         List<Item> items = new ArrayList<>();
 
-        for (String id:ids) {
-           String[] aux = id.split("-");
-           items.add(new Item(aux[0]+aux[1]));
+        for (String rawId:ids) {
+            String id = "";
+            if(rawId.contains("-")){
+                String[] aux = rawId.split("-");
+                id = aux[0]+aux[1];
+            } else {
+                id = rawId;
+            }
+           items.add(new Item(id));
         }
 
         carritoService.addItems(USER_ID, items);
