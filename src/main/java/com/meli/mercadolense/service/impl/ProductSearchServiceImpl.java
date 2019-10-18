@@ -77,7 +77,7 @@ static {
 
             // getting first result
             for (Prediction prediction : results.predictions()) {
-                if (prediction.probability() > 0.1){
+                if (prediction.probability() > 0.1 && dto.size() < 3){
                     String tagName = prediction.tagName().replaceFirst("-","");
                     String itemId = tagName.substring(0, tagName.indexOf("-"));
 
