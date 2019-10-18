@@ -9,6 +9,10 @@ import com.meli.mercadolense.domain.Item;
 import com.meli.mercadolense.dto.ProductSearchDTO;
 import com.meli.mercadolense.service.ItemService;
 import com.meli.mercadolense.service.ProductSearchService;
+import com.microsoft.azure.cognitiveservices.vision.customvision.prediction.CustomVisionPredictionClient;
+import com.microsoft.azure.cognitiveservices.vision.customvision.prediction.CustomVisionPredictionManager;
+import com.microsoft.azure.cognitiveservices.vision.customvision.prediction.models.ImagePrediction;
+import com.microsoft.azure.cognitiveservices.vision.customvision.prediction.models.Prediction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -50,71 +54,61 @@ static {
     public String getSimilarProductsFile(
             String picture)
             throws IOException {
-        try (ImageAnnotatorClient queryImageClient = getImageAnnotatorClient()) {
 
-            // Get the full path of the product set.
-            String productSetPath =
-                    ProductSearchClient.formatProductSetName(PROJECT_ID, COMPUTE_REGION, PRODUCT_SET_ID);
+        UUID projectId = UUID.fromString("43e399fa-ff4b-420d-8180-efb4a7263116");
+        String modelName = "MercadoLensV1";
+        String apiKey = "d569441adeb248ad8f3fd8f245c261f9";
+        String endpoint = "https://westus2.api.cognitive.microsoft.com";
 
-            // Read the image as a stream of bytes.
-            byte[] content = Base64.getDecoder().decode(picture);
+        CustomVisionPredictionClient predictClient = CustomVisionPredictionManager
+                .authenticate(endpoint+"/customvision/v3.0/prediction/", apiKey).withEndpoint(endpoint);
 
-            // Create annotate image request along with product search feature.
-            Feature featuresElement = Feature.newBuilder().setType(Feature.Type.PRODUCT_SEARCH).build();
-            // The input image can be a HTTPS link or Raw image bytes.
-            // Example:
-            // To use HTTP link replace with below code
-            //  ImageSource source = ImageSource.newBuilder().setImageUri(imageUri).build();
-            //  Image image = Image.newBuilder().setSource(source).build();
-            Image image = Image.newBuilder().setContent(ByteString.copyFrom(content)).build();
-            ImageContext imageContext =
-                    ImageContext.newBuilder()
-                            .setProductSearchParams(
-                                    ProductSearchParams.newBuilder()
-                                            .setProductSet(productSetPath)
-                                            .addProductCategories(PRODUCT_CATEGORY_HG)
-                                            .addProductCategories(PRODUCT_CATEGORY_HG_V2)
-                                            .addProductCategories(PRODUCT_CATEGORY_A)
-                                            .addProductCategories(PRODUCT_CATEGORY_A_V2)
-                                            .addProductCategories(PRODUCT_CATEGORY_T)
-                                            .addProductCategories(PRODUCT_CATEGORY_T_V2))
-                            .build();
+        // Read the image as a stream of bytes.
+        byte[] content = Base64.getDecoder().decode(picture);
 
-            AnnotateImageRequest annotateImageRequest =
-                    AnnotateImageRequest.newBuilder()
-                            .addFeatures(featuresElement)
-                            .setImage(image)
-                            .setImageContext(imageContext)
-                            .build();
-            List<AnnotateImageRequest> requests = Arrays.asList(annotateImageRequest);
+        ImagePrediction results = predictClient.predictions().classifyImage()
+                .withProjectId(projectId)
+                .withPublishedName(modelName)
+                .withImageData(content)
+                .execute();
 
-            // Search products similar to the image.
-            BatchAnnotateImagesResponse response = queryImageClient.batchAnnotateImages(requests);
-
+            // creating results list
             List<ProductSearchDTO> dto = new ArrayList<>();
-            for (ProductSearchResults.Result result :response.getResponses(0).getProductSearchResults().getResultsList()) {
-                ProductSearchDTO prod = new ProductSearchDTO();
-                //System.out.println(result.getProduct().getName());
 
-                // setting base results
-                prod.setScoring(result.getScore());
-                prod.setName(result.getProduct().getDisplayName());
+            // getting first result
+            Prediction firstPrediction = results.predictions().get(0);
+            String tagName = firstPrediction.tagName().replaceFirst("-","");
+            String itemId = tagName.substring(0, tagName.indexOf("-"));
 
-                // TODO: getting mocked id now, replace with original ID once service is working
-                String originalId = result.getProduct().getName().substring(result.getProduct().getName().lastIndexOf('/') + 1);
-                String mockedId = mockedItems.get(originalId);
-                prod.setId(mockedId);
+            // getting first item data
+            Item item = itemService.getItem(itemId);
 
-                // calling item api to get some extra info
-                Item item = itemService.getItem(mockedId);
-                prod.setUrl(item.getUrl());
-                prod.setImageUrl(item.getImageUrl());
+            // adding first result
+            dto.add(new ProductSearchDTO(
+                    itemId,
+                    firstPrediction.probability(),
+                    item.getName(),
+                    item.getUrl(),
+                    item.getImageUrl(),
+                    item.getPrice()));
 
-                dto.add(prod);
+            // getting suggestions
+            List<Item> items = itemService.getSuggestions(item.getId(), item.getCategory());
+
+            // adding suggestions
+            for(Item suggestion :items){
+                dto.add(new ProductSearchDTO(
+                        suggestion.getId(),
+                        firstPrediction.probability(),
+                        suggestion.getId(),
+                        suggestion.getUrl(),
+                        suggestion.getImageUrl(),
+                        suggestion.getPrice()
+                ));
             }
+
             ObjectMapper mapper = new ObjectMapper();
             return mapper.writeValueAsString(dto);
-        }
     }
 
     private ImageAnnotatorClient getImageAnnotatorClient() throws IOException {

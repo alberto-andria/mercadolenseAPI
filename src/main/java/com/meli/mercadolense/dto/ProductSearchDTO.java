@@ -6,16 +6,18 @@ public class ProductSearchDTO {
     private String name;
     private String url;
     private String imageUrl;
+    private Integer price;
 
     public ProductSearchDTO() {
     }
 
-    public ProductSearchDTO(String id, double scoring, String name, String url, String imageUlr) {
+    public ProductSearchDTO(String id, double scoring, String name, String url, String imageUlr, Integer price) {
         this.id = id;
         this.scoring = scoring;
         this.name = name;
         this.url = url;
         this.imageUrl = imageUlr;
+        this.price = price;
     }
 
     public String getId() {
@@ -56,5 +58,13 @@ public class ProductSearchDTO {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public Integer getPrice() {
+        return price;
+    }
+
+    public void setPrice(Integer price) {
+        this.price = price;
     }
 }

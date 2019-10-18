@@ -12,6 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
+@CrossOrigin(origins = "*", methods= {RequestMethod.GET,RequestMethod.POST})
 public class MainController {
     @Autowired
     private CarritoService carritoService;
@@ -40,11 +41,10 @@ public class MainController {
     @PostMapping("/item")
     public String postItem(@RequestBody ItemDTO item){
         try {
-
             String result = productSearchService.getSimilarProductsFile(item.getPicture());
             return result;
         }catch (Exception e){
-            System.out.println("Fallo la busqueda");
+            System.out.println(e.getMessage());
             return "NOT OKEY";
         }
     }

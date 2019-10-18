@@ -4,6 +4,11 @@ public class ItemDTO {
     private String picture;
     private String tag;
 
+    public ItemDTO() {
+        this.picture = "";
+        this.tag = "";
+    }
+
     public ItemDTO(String picture, String tag) {
         this.picture = picture;
         this.tag = tag;
