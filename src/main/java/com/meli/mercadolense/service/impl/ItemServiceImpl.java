@@ -18,21 +18,24 @@ import java.util.List;
 public class ItemServiceImpl implements ItemService {
 
     @Override
-    public String getItemImageUrl(String itemId) {
+    public Item getItem(String itemId) {
         List<Item> result = new ArrayList<>();
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpGet request = new HttpGet("http://api.internal.ml.com/items/"+itemId);
 
-        String itemImageUrl = "";
+        Item item = new Item(itemId);
         try {
             CloseableHttpResponse response = httpClient.execute(request);
             JSONObject strResponse = new JSONObject(EntityUtils.toString(response.getEntity()));
+            // setting item URL
+            item.setUrl((String)strResponse.get("permalink"));
+            // setting item picture url
             JSONArray pictures = (JSONArray)strResponse.get("pictures");
-            itemImageUrl = (String)pictures.getJSONObject(0).get("url");
+            item.setImageUrl((String)pictures.getJSONObject(0).get("url"));
         }catch (Exception e){
             System.out.println("Fallo para el carajo: "+e.getMessage());
         }
 
-        return itemImageUrl;
+        return item;
     }
 }

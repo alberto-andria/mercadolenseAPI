@@ -1,5 +1,7 @@
 package com.meli.mercadolense.service;
 
+import com.meli.mercadolense.domain.Item;
+
 public interface ItemService {
-    String getItemImageUrl(String itemId);
+    Item getItem(String itemId);
 }
