@@ -1,15 +1,24 @@
 package com.meli.mercadolense.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.vision.v1.*;
 import com.google.protobuf.ByteString;
+import com.meli.mercadolense.dto.ProductSearchDTO;
 import com.meli.mercadolense.service.ProductSearchService;
+import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 
 @Component
@@ -28,13 +37,11 @@ private static final String PRODUCT_CATEGORY_A_V2 = "apparel-v2";
     /**
      * Search similar products to image in local file.
      *
-     * @param filePath - Local file path of the image to be searched
-     *     color = blue) AND style = kids It will search on all products with the following labels:
-     *     color:red AND style:kids color:blue AND style:kids
+     * @param picture - picture
      * @throws IOException - on I/O errors.
      */
-    public void getSimilarProductsFile(
-            String filePath)
+    public String getSimilarProductsFile(
+            String picture)
             throws IOException {
         try (ImageAnnotatorClient queryImageClient = getImageAnnotatorClient()) {
 
@@ -43,8 +50,7 @@ private static final String PRODUCT_CATEGORY_A_V2 = "apparel-v2";
                     ProductSearchClient.formatProductSetName(PROJECT_ID, COMPUTE_REGION, PRODUCT_SET_ID);
 
             // Read the image as a stream of bytes.
-            InputStream inputStream = getClass().getClassLoader().getResourceAsStream(filePath);
-            byte[] content = inputStream.readAllBytes();
+            byte[] content = Base64.getDecoder().decode(picture);
 
             // Create annotate image request along with product search feature.
             Feature featuresElement = Feature.newBuilder().setType(Feature.Type.PRODUCT_SEARCH).build();
@@ -78,18 +84,17 @@ private static final String PRODUCT_CATEGORY_A_V2 = "apparel-v2";
             // Search products similar to the image.
             BatchAnnotateImagesResponse response = queryImageClient.batchAnnotateImages(requests);
 
-            List<ProductSearchResults.Result> similarProducts =
-                    response.getResponses(0).getProductSearchResults().getResultsList();
-            System.out.println("Similar Products: ");
-            for (ProductSearchResults.Result product : similarProducts) {
-                System.out.println(String.format("\nProduct name: %s", product.getProduct().getName()));
-                System.out.println(
-                        String.format("Product display name: %s", product.getProduct().getDisplayName()));
-                System.out.println(
-                        String.format("Product description: %s", product.getProduct().getDescription()));
-                System.out.println(String.format("Score(Confidence): %s", product.getScore()));
-                System.out.println(String.format("Image name: %s", product.getImage()));
+            List<ProductSearchDTO> dto = new ArrayList<>();
+            for (ProductSearchResults.Result result :response.getResponses(0).getProductSearchResults().getResultsList()) {
+                ProductSearchDTO prod = new ProductSearchDTO();
+                System.out.println(result.getProduct().getName());
+                prod.setId(result.getProduct().getName().substring(result.getProduct().getName().lastIndexOf('/') + 1));
+                prod.setScoring(result.getScore());
+                prod.setName(result.getProduct().getDisplayName());
+                dto.add(prod);
             }
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.writeValueAsString(dto);
         }
     }
 

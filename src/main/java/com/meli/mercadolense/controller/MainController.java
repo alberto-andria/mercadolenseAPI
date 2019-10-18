@@ -3,6 +3,7 @@ package com.meli.mercadolense.controller;
 import com.meli.mercadolense.domain.Item;
 import com.meli.mercadolense.dto.ItemDTO;
 import com.meli.mercadolense.service.CarritoService;
+import com.meli.mercadolense.service.ProductSearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +15,9 @@ import java.util.List;
 public class MainController {
     @Autowired
     private CarritoService carritoService;
+    @Autowired
+    private ProductSearchService productSearchService;
+
     private final String USER_ID = "9852568";
 
     @GetMapping("/ping")
@@ -35,9 +39,14 @@ public class MainController {
 
     @PostMapping("/item")
     public String postItem(@RequestBody ItemDTO item){
-        //Servicio Nico Albani
-        //Vuelven los posibles items
-        return "";
+        try {
+
+            String result = productSearchService.getSimilarProductsFile(item.getPicture());
+            return result;
+        }catch (Exception e){
+            System.out.println("Fallo la busqueda");
+            return "NOT OKEY";
+        }
     }
 
     @PostMapping("/generateCart")

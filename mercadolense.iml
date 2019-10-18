@@ -60,6 +60,7 @@
     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpcore:4.4.12" level="project" />
     <orderEntry type="library" name="Maven: commons-codec:commons-codec:1.13" level="project" />
     <orderEntry type="library" name="Maven: org.json:json:20190722" level="project" />
+    <orderEntry type="library" name="Maven: commons-io:commons-io:2.6" level="project" />
     <orderEntry type="library" name="Maven: com.google.cloud:google-cloud-vision:1.97.0" level="project" />
     <orderEntry type="library" name="Maven: com.google.cloud:google-cloud-core-grpc:1.91.2" level="project" />
     <orderEntry type="library" name="Maven: com.google.cloud:google-cloud-core:1.91.2" level="project" />
