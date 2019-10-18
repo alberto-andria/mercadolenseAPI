@@ -5,18 +5,21 @@ import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.vision.v1.*;
 import com.google.protobuf.ByteString;
+import com.meli.mercadolense.domain.Item;
 import com.meli.mercadolense.dto.ProductSearchDTO;
+import com.meli.mercadolense.service.ItemService;
 import com.meli.mercadolense.service.ProductSearchService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
+import java.util.*;
 
 @Component
 public class ProductSearchServiceImpl implements ProductSearchService {
+
+@Autowired
+private ItemService itemService;
 
 private static final String PROJECT_ID = "productsearchtest-256215";
 private static final String COMPUTE_REGION = "us-east1";
@@ -27,6 +30,16 @@ private static final String PRODUCT_CATEGORY_T = "toys";
 private static final String PRODUCT_CATEGORY_T_V2 = "toys-v2";
 private static final String PRODUCT_CATEGORY_A = "apparel";
 private static final String PRODUCT_CATEGORY_A_V2 = "apparel-v2";
+
+public static Map<String, String> mockedItems;
+static {
+    mockedItems = new HashMap<>();
+    mockedItems.put("Silla-Acapulco", "MLA782874474");
+    mockedItems.put("auricular", "MLA735675417");
+    mockedItems.put("celular", "MLA13996822");
+    mockedItems.put("lapicera roller", "MLA701685843");
+    mockedItems.put("zapatilla", "MLA632537677");
+}
 
     /**
      * Search similar products to image in local file.
@@ -81,10 +94,22 @@ private static final String PRODUCT_CATEGORY_A_V2 = "apparel-v2";
             List<ProductSearchDTO> dto = new ArrayList<>();
             for (ProductSearchResults.Result result :response.getResponses(0).getProductSearchResults().getResultsList()) {
                 ProductSearchDTO prod = new ProductSearchDTO();
-                System.out.println(result.getProduct().getName());
-                prod.setId(result.getProduct().getName().substring(result.getProduct().getName().lastIndexOf('/') + 1));
+                //System.out.println(result.getProduct().getName());
+
+                // setting base results
                 prod.setScoring(result.getScore());
                 prod.setName(result.getProduct().getDisplayName());
+
+                // TODO: getting mocked id now, replace with original ID once service is working
+                String originalId = result.getProduct().getName().substring(result.getProduct().getName().lastIndexOf('/') + 1);
+                String mockedId = mockedItems.get(originalId);
+                prod.setId(mockedId);
+
+                // calling item api to get some extra info
+                Item item = itemService.getItem(mockedId);
+                prod.setUrl(item.getUrl());
+                prod.setImageUrl(item.getImageUrl());
+
                 dto.add(prod);
             }
             ObjectMapper mapper = new ObjectMapper();
