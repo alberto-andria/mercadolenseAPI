@@ -7,15 +7,9 @@ import com.google.cloud.vision.v1.*;
 import com.google.protobuf.ByteString;
 import com.meli.mercadolense.dto.ProductSearchDTO;
 import com.meli.mercadolense.service.ProductSearchService;
-import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
